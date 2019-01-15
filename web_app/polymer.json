@@ -1,0 +1,16 @@
+{
+  "npm": true,
+  "moduleResolution": "node",
+  "entrypoint": "./index.html",
+  "shell": "src/my-project.js",
+  "extraDependencies": [
+    "node_modules/@webcomponents/webcomponentsjs/**"
+  ],
+  "builds": [{
+    "name": "app",
+    "bundle": true,
+    "js": {
+      "minify": true
+    }
+  }]
+}

@@ -1,0 +1,6 @@
+sample:
+  name: BB micro:bit Display
+tests:
+  test:
+    platform_whitelist: bbc_microbit
+    tags: display
