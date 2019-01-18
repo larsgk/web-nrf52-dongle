@@ -14,7 +14,6 @@
 #include <bluetooth/gatt.h>
 
 #include "gatt_service.h"
-#include "mb_display.h"
 #include "rgb_led.h"
 
 

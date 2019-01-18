@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <button id="connect">CONNECT</button>
+    </body>
+    <script>
+
+        const textDecoder = new TextDecoder();
+        const textEncoder = new TextEncoder('utf-8');
+
+        const readFromDevice = (device) => {
+            device.transferIn(3, 64).then(result => {
+                console.log('RX', textDecoder.decode(result.data));
+                readFromDevice(device);
+            }, error => {
+                console.warn(error);
+            });
+        };
+
+        const writeToDevice = (device, str) => {
+            console.log('TX', str);
+            const data = textEncoder.encode(str);
+            device.transferOut(2, data);
+        };
+
+        const openDevice = async (device) => {
+            await device.open();
+            await device.selectConfiguration(1);
+            await device.claimInterface(0);
+            
+            readFromDevice(device); 
+
+            let flip = false;
+
+            this.setInterval(() => {
+                if(flip) {
+                    device.transferOut(2, new Uint8Array([0x01, 0xff, 0, 0]));
+                } else {
+                    device.transferOut(2, new Uint8Array([0x01, 0, 0xff, 0]));
+                }
+                flip = !flip;
+                writeToDevice(device, "Hello WebUSB!");
+            }, 2000);
+        };
+
+        window.addEventListener('load', () => {
+            const btn = document.querySelector("#connect");
+
+            btn.addEventListener('click', async () => {
+                const device = await navigator.usb.requestDevice({ filters: [{}]});
+
+                openDevice(device);
+            });
+        });
+
+    </script>
+</html>

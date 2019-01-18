@@ -19,7 +19,7 @@
 
 #include "gatt_service.h"
 
-#include "mb_display.h"
+#include "webusb_main.h"
 
 #include "rgb_led.h"
 
@@ -85,7 +85,12 @@ void main(void)
 
 	rgb_led_init();
 
-	rgb_led_set(0,0,0); // led off'
+	rgb_led_set(0xff,0,0); // Red to indicate 'starting up'
+
+	if(init_webusb() < 0) {
+		rgb_led_set(0xff,0xff,0);
+		return;
+	}
 
 	err = bt_enable(bt_ready);
 	if (err) {
