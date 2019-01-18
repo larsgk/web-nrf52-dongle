@@ -1,6 +1,6 @@
 import { LitElement, html } from '@polymer/lit-element'; 
 
-import { MicrobitBoard } from './microbit-board';
+import { NRF52Dongle } from './nrf52-dongle';
 
 export class MainApp extends LitElement {
     static get properties() {
@@ -32,8 +32,8 @@ export class MainApp extends LitElement {
         <div class="flex-container">
             <div class="content">
                 <div class="col">
-                    <p>WebBluetooth & Zephyr GATT Display Demo</p>
-                    <microbit-board></microbit-board>
+                    <h1>WebUSB, WebBluetooth & Zephyr with nRF52840</h1>
+                    <nrf52-dongle></nrf52-dongle>
                 </div>
             </div>
         </div>

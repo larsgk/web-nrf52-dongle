@@ -1,6 +1,6 @@
 import { LitElement, html } from '@polymer/lit-element'; 
 
-export class MicrobitBoard extends LitElement {
+export class NRF52Dongle extends LitElement {
     static get properties() {
         return { };
     }
@@ -12,7 +12,7 @@ export class MicrobitBoard extends LitElement {
     render() {
         return html`
             <style>
-                .microbit {
+                .dongle {
                     background-color: rgb(0,10,0);
                     color: white;
                     width: 100%;
@@ -20,8 +20,8 @@ export class MicrobitBoard extends LitElement {
                     border-radius: 10%/15%;
                 }
             </style>
-            <div class="microbit"></div>
+            <div class="dongle"></div>
         `;
     }
 }
-customElements.define('microbit-board', MicrobitBoard);
+customElements.define('nrf52-dongle', NRF52Dongle);
