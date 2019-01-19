@@ -72,5 +72,6 @@ struct webusb_req_handlers {
 void webusb_register_request_handlers(struct webusb_req_handlers *handlers);
 
 int webusb_serial_init(void);
+void send_webusb_data(u8_t *data, int size);
 
 #endif /* __WEBUSB_SERIAL_H__ */

@@ -20,6 +20,7 @@
 #include "gatt_service.h"
 
 #include "webusb_main.h"
+#include "webusb_serial.h"
 
 #include "rgb_led.h"
 
@@ -110,8 +111,9 @@ void main(void)
 	while(1) {
 		k_sleep(1000);
 		
-		//len = sprintf(buf, "Count = %d", count);
-		//gatt_service_data_notify(buf, len);
+		len = sprintf(buf, "Count = %d", count);
+		// gatt_service_data_notify(buf, len);
+		send_webusb_data(buf, len);
 
 
 		gatt_service_heartbeat_notify(count++);

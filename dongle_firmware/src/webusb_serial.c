@@ -297,6 +297,12 @@ done:
 		     webusb_read_cb, NULL);
 }
 
+void send_webusb_data(u8_t *data, int size)
+{
+	usb_transfer(WEBUSB_ENDP_IN, data, size, USB_TRANS_WRITE,
+				webusb_write_cb, NULL);
+}
+
 /**
  * @brief Callback used to know the USB connection status
  *
