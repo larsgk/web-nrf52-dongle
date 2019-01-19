@@ -393,6 +393,9 @@ int webusb_serial_init(void)
 
 	LOG_DBG("");
 
+	// Lars Knudsen, 2019 - done to uniquely identify multiple
+	// connected webusb devices.  Note: on Windows, there might be an issue 
+	// that it bumps enumeration and never forgets until reboot.
 	makeUniqueSerialNumber();
 
 	webusb_serial_config.interface.payload_data = interface_data;
