@@ -1,7 +1,8 @@
 /*******************************************************************************
  *
  * Copyright(c) 2015,2016 Intel Corporation.
- * (minor modifications by Lars Knudsen, 2019)
+ * modifications by Lars Knudsen, 2019
+ * note: this file will be removed once WebUSB is in main subsys drivers
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +51,7 @@ LOG_MODULE_DECLARE(main);
 #include <misc/byteorder.h>
 #include <usb/usb_device.h>
 #include <usb/usb_common.h>
+#include <stdio.h>
 #include "webusb_serial.h"
 
 #include "rgb_led.h"
@@ -71,6 +73,9 @@ u8_t interface_data[CDC_CLASS_REQ_MAX_DATA_SIZE];
 
 u8_t rx_buf[64];
 
+#define UNIQUE_SERIAL_DESCRIPTOR_LEN (16 * 2)
+u8_t _uniqueSerial[UNIQUE_SERIAL_DESCRIPTOR_LEN];
+
 /* Structure representing the global USB description */
 struct dev_common_descriptor {
 	struct usb_device_descriptor device_descriptor;
@@ -85,19 +90,19 @@ struct dev_common_descriptor {
 		struct usb_mfr_descriptor {
 			u8_t bLength;
 			u8_t bDescriptorType;
-			u8_t bString[0x0C - 2];
+			u8_t bString[0x1A - 2];
 		} __packed utf16le_mfr;
 
 		struct usb_product_descriptor {
 			u8_t bLength;
 			u8_t bDescriptorType;
-			u8_t bString[0x0E - 2];
+			u8_t bString[0x20 - 2];
 		} __packed utf16le_product;
 
 		struct usb_sn_descriptor {
 			u8_t bLength;
 			u8_t bDescriptorType;
-			u8_t bString[0x0C - 2];
+			u8_t bString[UNIQUE_SERIAL_DESCRIPTOR_LEN];
 		} __packed utf16le_sn;
 	} __packed string_descr;
 	struct usb_desc_header term_descr;
@@ -175,22 +180,29 @@ static struct dev_common_descriptor webusb_serial_usb_description = {
 		},
 		/* Manufacturer String Descriptor */
 		.utf16le_mfr = {
-			.bLength = 0x0C,
+			.bLength = 0x1A,
 			.bDescriptorType = USB_STRING_DESC,
-			.bString = {'I', 0, 'n', 0, 't', 0, 'e', 0, 'l', 0,},
+			.bString = {'@', 0, 'd', 0, 'e', 0, 'n', 0,
+						'l', 0,	'a', 0, 'd', 0, 'e', 0,
+						's', 0, 'i', 0,	'd', 0, 'e', 0,},
 		},
 		/* Product String Descriptor */
 		.utf16le_product = {
-			.bLength = 0x0E,
+			.bLength = 0x20,
 			.bDescriptorType = USB_STRING_DESC,
-			.bString = {'W', 0, 'e', 0, 'b', 0, 'U', 0, 'S', 0,
-				    'B', 0,},
+			.bString = {'n', 0, 'R', 0, 'F', 0, '5', 0,
+						'2', 0,	'8', 0, '4', 0, '0', 0,
+						' ', 0, 'D', 0,	'o', 0, 'n', 0,
+						'g', 0, 'l', 0, 'e', 0,},
 		},
 		/* Serial Number String Descriptor */
 		.utf16le_sn = {
-			.bLength = 0x0C,
+			.bLength = UNIQUE_SERIAL_DESCRIPTOR_LEN+2,
 			.bDescriptorType = USB_STRING_DESC,
-			.bString = {'0', 0, '0', 0, '.', 0, '0', 0, '1', 0,},
+			.bString = {'0', 0, '1', 0, '2', 0, '3', 0,
+						'4', 0, '5', 0, '6', 0, '7', 0,
+						'8', 0, '9', 0, 'A', 0, 'B', 0,
+						'C', 0, 'D', 0, 'E', 0, 'F', 0,},
 		},
 	},
 
@@ -354,11 +366,32 @@ static struct usb_cfg_data webusb_serial_config = {
 	.endpoint = webusb_serial_ep_data
 };
 
+// Lars Knudsen - ported from empiriKit Controller
+// using:
+// NRF_LOG_INFO("DEVICEID0: %08X\n", NRF_FICR->DEVICEID[0]);
+// NRF_LOG_INFO("DEVICEID1: %08X\n", NRF_FICR->DEVICEID[1]);
+void makeUniqueSerialNumber()
+{
+    sprintf((char*)_uniqueSerial,"%08X%08X",
+        NRF_FICR->DEVICEID[0],
+        NRF_FICR->DEVICEID[0]);
+
+    // convert to double byte
+    for(int i = UNIQUE_SERIAL_DESCRIPTOR_LEN-1; i>=0 ; i--) {
+        _uniqueSerial[i] = i&1 ? 0 : _uniqueSerial[i>>1];
+    }
+
+	memcpy(webusb_serial_usb_description.string_descr.utf16le_sn.bString, _uniqueSerial, UNIQUE_SERIAL_DESCRIPTOR_LEN);
+}
+
+
 int webusb_serial_init(void)
 {
 	int ret;
 
 	LOG_DBG("");
+
+	makeUniqueSerialNumber();
 
 	webusb_serial_config.interface.payload_data = interface_data;
 

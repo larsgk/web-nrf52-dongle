@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2016 Intel Corporation
- * (minor modifications by Lars Knudsen, 2019)
+ * modifications by Lars Knudsen, 2019
+ * note: this file will be removed once WebUSB is in main subsys drivers
  *
  * SPDX-License-Identifier: Apache-2.0
  */

@@ -1,7 +1,8 @@
 /***************************************************************************
  *
  * Copyright(c) 2015,2016 Intel Corporation.
- * (minor modifications by Lars Knudsen, 2019)
+ * modifications by Lars Knudsen, 2019
+ * note: this file will be removed once WebUSB is in main subsys drivers
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
