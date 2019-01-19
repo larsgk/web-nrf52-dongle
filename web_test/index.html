@@ -2,6 +2,7 @@
 <html>
     <body>
         <button id="connect">CONNECT</button>
+        <input id="msg"><button id="send_usb">SEND (USB)</button>
     </body>
     <script>
 
@@ -32,24 +33,35 @@
 
             let flip = false;
 
-            this.setInterval(() => {
-                if(flip) {
-                    device.transferOut(2, new Uint8Array([0x01, 0xff, 0, 0]));
-                } else {
-                    device.transferOut(2, new Uint8Array([0x01, 0, 0xff, 0]));
-                }
-                flip = !flip;
-                writeToDevice(device, "Hello WebUSB!");
-            }, 2000);
+            // this.setInterval(() => {
+            //     if(flip) {
+            //         device.transferOut(2, new Uint8Array([0x01, 0xff, 0, 0]));
+            //     } else {
+            //         device.transferOut(2, new Uint8Array([0x01, 0, 0xff, 0]));
+            //     }
+            //     flip = !flip;
+            //     writeToDevice(device, "Hello WebUSB!");
+            // }, 2000);
         };
 
         window.addEventListener('load', () => {
-            const btn = document.querySelector("#connect");
+            const connectBtn = document.querySelector("#connect");
+            const sendUSBBtn = document.querySelector("#send_usb");
+            const msgInput = document.querySelector("#msg");
+            let device = null;
 
-            btn.addEventListener('click', async () => {
-                const device = await navigator.usb.requestDevice({ filters: [{}]});
+            connectBtn.addEventListener('click', async () => {
+                device = await navigator.usb.requestDevice({ filters: [{}]});
 
                 openDevice(device);
+            });
+
+            sendUSBBtn.addEventListener('click', async () => {
+                device.transferOut(2, new Uint8Array([0x01, 
+                    Math.floor(256*Math.random()),
+                    Math.floor(256*Math.random()),
+                    Math.floor(256*Math.random())]));
+                writeToDevice(device, msgInput.value);
             });
         });
 

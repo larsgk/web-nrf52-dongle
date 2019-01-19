@@ -109,8 +109,11 @@ void main(void)
 
 	while(1) {
 		k_sleep(1000);
-		len = sprintf(buf, "Count = %d", count);
-		gatt_service_data_notify(buf, len);
+		
+		//len = sprintf(buf, "Count = %d", count);
+		//gatt_service_data_notify(buf, len);
+
+
 		gatt_service_heartbeat_notify(count++);
 	}
 

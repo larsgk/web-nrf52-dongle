@@ -55,6 +55,7 @@ LOG_MODULE_DECLARE(main);
 #include "webusb_serial.h"
 
 #include "rgb_led.h"
+#include "gatt_service.h"
 
 /* Max packet size for Bulk endpoints */
 #define CDC_BULK_EP_MPS			64
@@ -287,6 +288,7 @@ static void webusb_read_cb(u8_t ep, int size, void *priv)
 	if(size > 3 && rx_buf[0] == 0x01) {
 		rgb_led_set(rx_buf[1], rx_buf[2], rx_buf[3]);
 	} else {
+		gatt_service_data_notify(rx_buf, size);
 		usb_transfer(WEBUSB_ENDP_IN, rx_buf, size, USB_TRANS_WRITE,
 				webusb_write_cb, NULL);
 	}
