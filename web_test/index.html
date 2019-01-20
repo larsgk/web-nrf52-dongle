@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html>
     <body>
-        <button id="connect">CONNECT</button>
-        <input id="msg"><button id="send_usb">SEND (USB)</button>
+        <button id="connect_usb">CONNECT (USB)</button>
+        <input id="msg_usb"><button id="send_usb">SEND (USB)</button><br>
+        <button id="connect_ble">CONNECT (BLE)</button>
+        <input id="msg_ble"><button id="send_ble">SEND (BLE)</button><br>
     </body>
     <script>
-
+        // Web USB related
+        const usb_devices = new Map();
         const textDecoder = new TextDecoder();
         const textEncoder = new TextEncoder('utf-8');
 
         const readFromDevice = (device) => {
             device.transferIn(3, 64).then(result => {
-                console.log('RX', textDecoder.decode(result.data));
+                console.log(`RX[${device.serialNumber}]:`, textDecoder.decode(result.data));
                 readFromDevice(device);
             }, error => {
+                // disconnect USB device
+                usb_devices. delete(`${device.productId}:${device.serialNumber}`);
                 console.warn(error);
             });
         };
 
         const writeToDevice = (device, str) => {
-            console.log('TX', str);
+            console.log(`TX[${device.serialNumber}]:`, str);
             const data = textEncoder.encode(str);
             device.transferOut(2, data);
         };
@@ -30,41 +35,75 @@
             await device.claimInterface(0);
 
             console.log('connected', device);
+
+            usb_devices.set(`${device.productId}:${device.serialNumber}`, device);
             
             readFromDevice(device); 
 
             let flip = false;
-
-            // this.setInterval(() => {
-            //     if(flip) {
-            //         device.transferOut(2, new Uint8Array([0x01, 0xff, 0, 0]));
-            //     } else {
-            //         device.transferOut(2, new Uint8Array([0x01, 0, 0xff, 0]));
-            //     }
-            //     flip = !flip;
-            //     writeToDevice(device, "Hello WebUSB!");
-            // }, 2000);
         };
 
-        window.addEventListener('load', () => {
-            const connectBtn = document.querySelector("#connect");
+        const initWebUSB = async () => {
+            const connectUSBBtn = document.querySelector("#connect_usb");
             const sendUSBBtn = document.querySelector("#send_usb");
-            const msgInput = document.querySelector("#msg");
-            let device = null;
+            const msgUSBInput = document.querySelector("#msg_usb");
 
-            connectBtn.addEventListener('click', async () => {
-                device = await navigator.usb.requestDevice({ filters: [{}]});
-
+            connectUSBBtn.addEventListener('click', async () => {
+                const device = await navigator.usb.requestDevice({ filters: [{}]});
                 openDevice(device);
             });
 
             sendUSBBtn.addEventListener('click', async () => {
-                device.transferOut(2, new Uint8Array([0x01, 
+                for(let [key, device] of usb_devices) {
+                    device.transferOut(2, new Uint8Array([0x01, 
                     Math.floor(256*Math.random()),
                     Math.floor(256*Math.random()),
                     Math.floor(256*Math.random())]));
-                writeToDevice(device, msgInput.value);
+                writeToDevice(device, msgUSBInput.value);
+                }
             });
+
+            // Auto-connect to all devices previously approved ('paired')
+            const availableDevices = await navigator.usb.getDevices();
+            availableDevices.forEach(device => {
+                // if(device.vendorId === empiriKitUSBID.VID && device.productId === empiriKitUSBID.PID) {
+                    openDevice(device);                
+                // }
+            });
+        
+            navigator.usb.addEventListener('connect', evt => openDevice(evt.device));
+        };
+
+        // Web Bluetooth related
+        const initWebBluetooth = async () => {
+            const connectBLEBtn = document.querySelector("#connect_ble");
+            const sendBLEBtn = document.querySelector("#send_ble");
+            const msgBLEInput = document.querySelector("#msg_ble");
+
+            connectBLEBtn.addEventListener('click', async () => {
+                // TODO actual UUID!!
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['ef680100-9b35-4933-9b10-52ffa9740042'] }],
+                    optionalServices: [
+                        "ef680200-9b35-4933-9b10-52ffa9740042",
+                        "ef680300-9b35-4933-9b10-52ffa9740042",
+                        "ef680400-9b35-4933-9b10-52ffa9740042",
+                        "ef680500-9b35-4933-9b10-52ffa9740042"
+                    ]
+                });
+                openBLEDevice(device);
+            });
+
+            sendBLEBtn.addEventListener('click', async () => {
+                for(let [key, device] of ble_devices) {
+                }
+            });
+
+        };
+
+        window.addEventListener('load', async () => {
+            initWebUSB();
+            initWebBluetooth();
         });
 
     </script>
