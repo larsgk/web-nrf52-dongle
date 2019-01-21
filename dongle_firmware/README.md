@@ -30,6 +30,15 @@ nrfutil dfu serial -pkg pkg.zip -p /dev/ttyACM0
 ```
 
 
+# Unique identifiers
+
+## BLE
+The first part of the MAC address should be printed on the sticker on the dongle.
+
+## USB
+The serial number is derived from 2 internal factory set 64bit integers. Allows for multiple devices connecting at the same time.
+
+
 # TODO
 
 * unify WebUSB and GATT 'cmd protocols' (set color, send text)
