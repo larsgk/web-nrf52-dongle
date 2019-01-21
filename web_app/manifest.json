@@ -1,0 +1,35 @@
+{
+  "name": "WebUSB, WebBluetooth & Zephyr with Nordic nRF52840 dongle",
+  "short_name": "Nordic dongle demo",
+  "description": "A cool demo!",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0071c5",
+  "theme_color": "#0071c5",
+  "icons": [{
+      "src": "images/nrfdongle-48.png",
+      "type": "image/png",
+      "sizes": "48x48"
+    }, {
+      "src": "images/nrfdongle-72.png",
+      "type": "image/png",
+      "sizes": "72x72"
+    }, {
+      "src": "images/nrfdongle-96.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    }, {
+      "src": "images/nrfdongle-144.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    }, {
+      "src": "images/nrfdongle-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }, {
+      "src": "images/nrfdongle-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
