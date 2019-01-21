@@ -75,7 +75,10 @@ static ssize_t write_cmd(struct bt_conn *conn,
 	if(values[0] == 0x01 && len == 4) {
 		rgb_led_set(values[1], values[2], values[3]);
 	} else if(values[0] == 0x02) {
-		// other cmd
+		// TODO: grab text and pass on to usb?
+	} else {
+		// assume plain text - send to USB?
+		send_webusb_data(values, len);
 	}
 
 	return len;

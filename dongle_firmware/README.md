@@ -28,3 +28,14 @@ nrfutil pkg generate --hw-version 52 --sd-req=0x00 --application zephyr/zephyr.h
 
 nrfutil dfu serial -pkg pkg.zip -p /dev/ttyACM0
 ```
+
+
+# TODO
+
+* unify WebUSB and GATT 'cmd protocols' (set color, send text)
+* put guards/limits on length of messages
+* maybe introduce multi-notify on both USB and gatt side (workqueue) - could be too advanced?
+* add ability to rename BLE device name - maybe only at runtime (no persist)?
+* possibly send unique USB serial, etc on e.g. READ GATT characteristic?
+* More descriptors on GATT services/characteristics
+
