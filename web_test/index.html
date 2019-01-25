@@ -66,11 +66,11 @@
             const availableDevices = await navigator.usb.getDevices();
             availableDevices.forEach(device => {
                 // if(device.vendorId === empiriKitUSBID.VID && device.productId === empiriKitUSBID.PID) {
-                    openDevice(device);                
+                    openUSBDevice(device);                
                 // }
             });
         
-            navigator.usb.addEventListener('connect', evt => openDevice(evt.device));
+            navigator.usb.addEventListener('connect', evt => openUSBDevice(evt.device));
         };
 
         // Web Bluetooth related
