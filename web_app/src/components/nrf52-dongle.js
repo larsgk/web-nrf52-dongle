@@ -5,11 +5,11 @@ export class nRF52Dongle extends LitElement {
     return [
       css`
         .dongle {
-          background-color: rgb(0, 10, 0);
-          color: white;
+          width: auto;
+        }
+
+        img {
           width: 100%;
-          padding-bottom: 66.66%;
-          border-radius: 10% / 15%;
         }
       `
     ];
@@ -17,7 +17,7 @@ export class nRF52Dongle extends LitElement {
 
   render() {
     return html`
-      <div class="dongle"></div>
+      <div class="dongle"><img src="../images/real_dongle.png"></div>
     `;
   }
 }

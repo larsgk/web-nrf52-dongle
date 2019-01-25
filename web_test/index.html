@@ -1,17 +1,22 @@
 <!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
 <html>
     <body>
         <button id="connect_usb">CONNECT (USB)</button>
         <input id="msg_usb"><button id="send_usb">SEND ALL (USB)</button><br>
         <button id="connect_ble">CONNECT (BLE)</button>
         <input id="msg_ble"><button id="send_ble">SEND ALL (BLE)</button><br>
-        <button id="disconnect_all">DISCONNECT ALL DEVICES</button>
+        <button id="disconnect_all">DISCONNECT ALL DEVICES</button><br>
+        <button id="toggle_heartbeat">TOGGLE HEARTBEAT</button>
     </body>
     <script>
         // Web USB related
         const usb_devices = new Map();
         const textDecoder = new TextDecoder();
-        const textEncoder = new TextEncoder('utf-8');
+        const textEncoder = new TextEncoder();
+        let _heartbeatEnabled = false;
 
         const _DongleTempUSBID = {
             VID: 0x2fe3,
@@ -20,7 +25,14 @@
 
         const readFromDevice = (device) => {
             device.transferIn(3, 64).then(result => {
-                console.log(`RX_USB[${device.serialNumber}]:`, textDecoder.decode(result.data));
+                const msg = textDecoder.decode(result.data);
+                if(msg.indexOf('Count =') !== -1) {
+                    if(_heartbeatEnabled) {
+                        console.log(`RX_USB[${device.serialNumber}]:`, `Heartbeat ${msg}`);
+                    }
+                } else {
+                    console.log(`RX_USB[${device.serialNumber}]:`, msg);
+                }
                 readFromDevice(device);
             }, error => {
                 // disconnect USB device
@@ -86,20 +98,18 @@
         let ble_cmd_characteristic = null;
 
         startHeartbeatNotifications = async (server) => {
-            console.log(`Start listening for heartbeats on BLE[${server.device.id}]`);
             const service = await server.getPrimaryService('12345678-1234-5678-1234-56789abcdef0');
-            console.log('service', service);
             const characteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef1');
-            console.log('characteristic', characteristic);
             characteristic.addEventListener('characteristicvaluechanged', (evt) => {
                 const value = evt.target.value.getInt16(0, true);
-                console.log(`RX_BLE[${server.device.id}]: Heartbeat count = ${value}`);
+                if(_heartbeatEnabled) {
+                    console.log(`RX_BLE[${server.device.id}]: Heartbeat count = ${value}`);
+                }
             });
             return characteristic.startNotifications();
         }
 
         startDataNotifications = async (server) => {
-            console.log(`Start listening for data on BLE[${server.device.id}]`);
             const service = await server.getPrimaryService('12345678-1234-5678-1234-56789abcdef0');
             const characteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef2');
             characteristic.addEventListener('characteristicvaluechanged', (evt) => {
@@ -109,7 +119,6 @@
         }
 
         fetchCmdCharacteristic = async (server) => {
-            console.log(`Initialize cmd characteristic for BLE[${server.device.id}]`);
             const service = await server.getPrimaryService('12345678-1234-5678-1234-56789abcdef0');
             server.device.cmdCharacteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef3');
         }
@@ -124,17 +133,14 @@
         const openBLEDevice = async (device) => {
             const server = await device.gatt.connect();
             
-            window.bleserver = server;
-
-            console.log(server);
-
             try {
                 await startHeartbeatNotifications(server);
                 await startDataNotifications(server);
                 await fetchCmdCharacteristic(server);
-                console.log('connected', device);
 
                 ble_devices.set(`${device.id}`, device);
+
+                console.log(`connected BLE[${device.id}]`);
 
                 device.ongattserverdisconnected = _ => { ble_devices.delete(`${device.id}`)};
             } catch (err) {
@@ -153,8 +159,6 @@
                     filters: [{ services: ['12345678-1234-5678-1234-56789abcdef0'] }]
                 });
 
-                console.log(device);
-
                 await openBLEDevice(device);
             });
 
@@ -171,6 +175,7 @@
             initWebBluetooth();
 
             const disconnectAllBtn = document.querySelector("#disconnect_all");
+            const toggleHeartbeatBtn = document.querySelector("#toggle_heartbeat");
 
 
             disconnectAllBtn.addEventListener('click', async () => {
@@ -181,6 +186,8 @@
                     device.close();
                 }
             });
+
+            toggleHeartbeatBtn.addEventListener('click', async () => { _heartbeatEnabled = !_heartbeatEnabled; } );
         });
 
     </script>
