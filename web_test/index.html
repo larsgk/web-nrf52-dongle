@@ -14,22 +14,23 @@
 
         const readFromDevice = (device) => {
             device.transferIn(3, 64).then(result => {
-                console.log(`RX[${device.serialNumber}]:`, textDecoder.decode(result.data));
+                console.log(`RX_USB[${device.serialNumber}]:`, textDecoder.decode(result.data));
                 readFromDevice(device);
             }, error => {
                 // disconnect USB device
-                usb_devices. delete(`${device.productId}:${device.serialNumber}`);
-                console.warn(error);
+                const deviceId = `${device.productId}:${device.serialNumber}`;
+                usb_devices.delete(deviceId);
+                console.log('disconnected', device);
             });
         };
 
         const writeToDevice = (device, str) => {
-            console.log(`TX[${device.serialNumber}]:`, str);
+            console.log(`TX_USB[${device.serialNumber}]:`, str);
             const data = textEncoder.encode(str);
             device.transferOut(2, data);
         };
 
-        const openDevice = async (device) => {
+        const openUSBDevice = async (device) => {
             await device.open();
             await device.selectConfiguration(1);
             await device.claimInterface(0);
@@ -39,8 +40,6 @@
             usb_devices.set(`${device.productId}:${device.serialNumber}`, device);
             
             readFromDevice(device); 
-
-            let flip = false;
         };
 
         const initWebUSB = async () => {
@@ -50,7 +49,7 @@
 
             connectUSBBtn.addEventListener('click', async () => {
                 const device = await navigator.usb.requestDevice({ filters: [{}]});
-                openDevice(device);
+                openUSBDevice(device);
             });
 
             sendUSBBtn.addEventListener('click', async () => {
@@ -75,23 +74,72 @@
         };
 
         // Web Bluetooth related
+        const ble_devices = new Map();
+        let ble_cmd_characteristic = null;
+
+        startHeartbeatNotifications = async (device, server) => {
+            console.log(`Start listening for heartbeats on BLE[${device.id}]`);
+            const service = await server.getPrimaryService('12115678-1234-5678-1234-56789abcdef0');
+            console.log('service', service);
+            const characteristic = await service.getCharacteristic('12225678-1234-5678-1234-56789abcdef0');
+            console.log('characteristic', characteristic);
+            characteristic.addEventListener('characteristicvaluechanged', (evt) => {
+                const value = evt.target.value.getInt16(0, true);
+                console.log(`RX_BLE[${device.id}]: Heartbeat count = ${value}`);
+            });
+            return characteristic.startNotifications();
+        }
+
+        startDataNotifications = async (device, server) => {
+            console.log(`Start listening for data on BLE[${device.id}]`);
+            const service = await server.getPrimaryService('12115678-1234-5678-1234-56789abcdef0');
+            const characteristic = await service.getCharacteristic('12335678-1234-5678-1234-56789abcdef0');
+            characteristic.addEventListener('characteristicvaluechanged', (evt) => {
+                const value = evt.target.value.getInt16(0, true);
+                console.log(`RX_BLE[${device.id}]: Heartbeat count = ${value}`);
+            });
+            return characteristic.startNotifications();
+        }
+
+        fetchCmdCharacteristic = async (device, server) => {
+            console.log(`Initialize cmd characteristic for BLE[${device.id}]`);
+            const service = await server.getPrimaryService('12115678-1234-5678-1234-56789abcdef0');
+            device.cmdCharacteristic = await service.getCharacteristic('12445678-1234-5678-1234-56789abcdef0');
+        }
+
+
+        const openBLEDevice = async (device) => {
+            const server = await device.gatt.connect();
+
+            console.log(server);
+
+            try {
+                await startHeartbeatNotifications(device, server);
+                await startDataNotifications(device, server);
+                await fetchCmdCharacteristic(device, server);
+                console.log('connected', device);
+
+                ble_devices.set(`${device.id}`, device);
+            } catch (err) {
+                console.warn(err);
+            }
+        };
+
         const initWebBluetooth = async () => {
             const connectBLEBtn = document.querySelector("#connect_ble");
             const sendBLEBtn = document.querySelector("#send_ble");
             const msgBLEInput = document.querySelector("#msg_ble");
 
             connectBLEBtn.addEventListener('click', async () => {
-                // TODO actual UUID!!
+                // TODO actual UUID (if you want to build a device)!!
                 const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['ef680100-9b35-4933-9b10-52ffa9740042'] }],
-                    optionalServices: [
-                        "ef680200-9b35-4933-9b10-52ffa9740042",
-                        "ef680300-9b35-4933-9b10-52ffa9740042",
-                        "ef680400-9b35-4933-9b10-52ffa9740042",
-                        "ef680500-9b35-4933-9b10-52ffa9740042"
-                    ]
+                    filters: [{ services: ['12345678-1234-5678-1234-56789abcdef0'] }],
+                    optionalServices: ['12115678-1234-5678-1234-56789abcdef0']
                 });
-                openBLEDevice(device);
+
+                console.log(device);
+
+                await openBLEDevice(device);
             });
 
             sendBLEBtn.addEventListener('click', async () => {
