@@ -289,9 +289,9 @@ static void webusb_read_cb(u8_t ep, int size, void *priv)
 		rgb_led_set(rx_buf[1], rx_buf[2], rx_buf[3]);
 	} else {
 		gatt_service_data_notify(rx_buf, size);
-		// TODO: remove loopback
-		usb_transfer(WEBUSB_ENDP_IN, rx_buf, size, USB_TRANS_WRITE,
-				webusb_write_cb, NULL);
+		// Loopback removed (uncomment to reintroduce)
+		// usb_transfer(WEBUSB_ENDP_IN, rx_buf, size, USB_TRANS_WRITE,
+		// 		webusb_write_cb, NULL);
 	}
 done:
 	usb_transfer(WEBUSB_ENDP_OUT, rx_buf, sizeof(rx_buf), USB_TRANS_READ,

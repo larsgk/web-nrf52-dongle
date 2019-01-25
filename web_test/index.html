@@ -2,9 +2,10 @@
 <html>
     <body>
         <button id="connect_usb">CONNECT (USB)</button>
-        <input id="msg_usb"><button id="send_usb">SEND (USB)</button><br>
+        <input id="msg_usb"><button id="send_usb">SEND ALL (USB)</button><br>
         <button id="connect_ble">CONNECT (BLE)</button>
-        <input id="msg_ble"><button id="send_ble">SEND (BLE)</button><br>
+        <input id="msg_ble"><button id="send_ble">SEND ALL (BLE)</button><br>
+        <button id="disconnect_all">DISCONNECT ALL DEVICES</button>
     </body>
     <script>
         // Web USB related
@@ -12,19 +13,24 @@
         const textDecoder = new TextDecoder();
         const textEncoder = new TextEncoder('utf-8');
 
+        const _DongleTempUSBID = {
+            VID: 0x2fe3,
+            PID: 0x0100
+        }
+
         const readFromDevice = (device) => {
             device.transferIn(3, 64).then(result => {
                 console.log(`RX_USB[${device.serialNumber}]:`, textDecoder.decode(result.data));
                 readFromDevice(device);
             }, error => {
                 // disconnect USB device
-                const deviceId = `${device.productId}:${device.serialNumber}`;
+                const deviceId = `${device.serialNumber}`;
                 usb_devices.delete(deviceId);
-                console.log('disconnected', device);
+                console.log(`disconnected USB[${deviceId}]`);
             });
         };
 
-        const writeToDevice = (device, str) => {
+        const writeToUSBDevice = (device, str) => {
             console.log(`TX_USB[${device.serialNumber}]:`, str);
             const data = textEncoder.encode(str);
             device.transferOut(2, data);
@@ -35,9 +41,11 @@
             await device.selectConfiguration(1);
             await device.claimInterface(0);
 
-            console.log('connected', device);
+            const deviceId = `${device.serialNumber}`;
 
-            usb_devices.set(`${device.productId}:${device.serialNumber}`, device);
+            usb_devices.set(deviceId, device);
+
+            console.log(`connected USB[${deviceId}]`);
             
             readFromDevice(device); 
         };
@@ -48,7 +56,7 @@
             const msgUSBInput = document.querySelector("#msg_usb");
 
             connectUSBBtn.addEventListener('click', async () => {
-                const device = await navigator.usb.requestDevice({ filters: [{}]});
+                const device = await navigator.usb.requestDevice({ filters: [{vendorId: _DongleTempUSBID.VID, productId: _DongleTempUSBID.PID}]});
                 openUSBDevice(device);
             });
 
@@ -58,16 +66,16 @@
                     Math.floor(256*Math.random()),
                     Math.floor(256*Math.random()),
                     Math.floor(256*Math.random())]));
-                writeToDevice(device, msgUSBInput.value);
+                writeToUSBDevice(device, msgUSBInput.value);
                 }
             });
 
             // Auto-connect to all devices previously approved ('paired')
             const availableDevices = await navigator.usb.getDevices();
             availableDevices.forEach(device => {
-                // if(device.vendorId === empiriKitUSBID.VID && device.productId === empiriKitUSBID.PID) {
+                if(device.vendorId === _DongleTempUSBID.VID && device.productId === _DongleTempUSBID.PID) {
                     openUSBDevice(device);                
-                // }
+                }
             });
         
             navigator.usb.addEventListener('connect', evt => openUSBDevice(evt.device));
@@ -95,8 +103,7 @@
             const service = await server.getPrimaryService('12345678-1234-5678-1234-56789abcdef0');
             const characteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef2');
             characteristic.addEventListener('characteristicvaluechanged', (evt) => {
-                const value = evt.target.value.getInt16(0, true);
-                console.log(`RX_BLE[${server.device.id}]: Data: ${value}`);
+                console.log(`RX_BLE[${server.device.id}]: ${textDecoder.decode(evt.target.value)}`);
             });
             return characteristic.startNotifications();
         }
@@ -107,6 +114,12 @@
             server.device.cmdCharacteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef3');
         }
 
+        const writeToBLEDevice = (device, str) => {
+            console.log(`TX_BLE[${device.id}]:`, str);
+            const data = textEncoder.encode(str);
+            // Consider: Check length (max 20 bytes)
+            device.cmdCharacteristic.writeValue(data);
+        };
 
         const openBLEDevice = async (device) => {
             const server = await device.gatt.connect();
@@ -122,6 +135,8 @@
                 console.log('connected', device);
 
                 ble_devices.set(`${device.id}`, device);
+
+                device.ongattserverdisconnected = _ => { ble_devices.delete(`${device.id}`)};
             } catch (err) {
                 console.warn(err);
             }
@@ -145,7 +160,7 @@
 
             sendBLEBtn.addEventListener('click', async () => {
                 for(let [key, device] of ble_devices) {
-                    // make receiver in firmware...
+                    writeToBLEDevice(device, msgBLEInput.value);
                 }
             });
 
@@ -154,6 +169,18 @@
         window.addEventListener('load', async () => {
             initWebUSB();
             initWebBluetooth();
+
+            const disconnectAllBtn = document.querySelector("#disconnect_all");
+
+
+            disconnectAllBtn.addEventListener('click', async () => {
+                for(let [key, device] of ble_devices) {
+                    device.gatt.disconnect();
+                }
+                for(let [key, device] of usb_devices) {
+                    device.close();
+                }
+            });
         });
 
     </script>
