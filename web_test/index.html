@@ -77,23 +77,23 @@
         const ble_devices = new Map();
         let ble_cmd_characteristic = null;
 
-        startHeartbeatNotifications = async (device, server) => {
-            console.log(`Start listening for heartbeats on BLE[${device.id}]`);
-            const service = await server.getPrimaryService('12115678-1234-5678-1234-56789abcdef0');
+        startHeartbeatNotifications = async (server) => {
+            console.log(`Start listening for heartbeats on BLE[${server.device.id}]`);
+            const service = await server.getPrimaryService('12345678-1234-5678-1234-56789abcdef0');
             console.log('service', service);
-            const characteristic = await service.getCharacteristic('12225678-1234-5678-1234-56789abcdef0');
+            const characteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef1');
             console.log('characteristic', characteristic);
             characteristic.addEventListener('characteristicvaluechanged', (evt) => {
                 const value = evt.target.value.getInt16(0, true);
-                console.log(`RX_BLE[${device.id}]: Heartbeat count = ${value}`);
+                console.log(`RX_BLE[${server.device.id}]: Heartbeat count = ${value}`);
             });
             return characteristic.startNotifications();
         }
 
-        startDataNotifications = async (device, server) => {
+        startDataNotifications = async (server) => {
             console.log(`Start listening for data on BLE[${device.id}]`);
-            const service = await server.getPrimaryService('12115678-1234-5678-1234-56789abcdef0');
-            const characteristic = await service.getCharacteristic('12335678-1234-5678-1234-56789abcdef0');
+            const service = await server.getPrimaryService('12345678-1234-5678-1234-56789abcdef0');
+            const characteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef2');
             characteristic.addEventListener('characteristicvaluechanged', (evt) => {
                 const value = evt.target.value.getInt16(0, true);
                 console.log(`RX_BLE[${device.id}]: Heartbeat count = ${value}`);
@@ -101,28 +101,30 @@
             return characteristic.startNotifications();
         }
 
-        fetchCmdCharacteristic = async (device, server) => {
-            console.log(`Initialize cmd characteristic for BLE[${device.id}]`);
-            const service = await server.getPrimaryService('12115678-1234-5678-1234-56789abcdef0');
-            device.cmdCharacteristic = await service.getCharacteristic('12445678-1234-5678-1234-56789abcdef0');
+        fetchCmdCharacteristic = async (server) => {
+            console.log(`Initialize cmd characteristic for BLE[${server.device.id}]`);
+            const service = await server.getPrimaryService('12345678-1234-5678-1234-56789abcdef0');
+            server.device.cmdCharacteristic = await service.getCharacteristic('12345678-1234-5678-1234-56789abcdef3');
         }
 
 
         const openBLEDevice = async (device) => {
             const server = await device.gatt.connect();
+            
+            window.bleserver = server;
 
             console.log(server);
 
-            try {
-                await startHeartbeatNotifications(device, server);
-                await startDataNotifications(device, server);
-                await fetchCmdCharacteristic(device, server);
-                console.log('connected', device);
+            // try {
+            //     await startHeartbeatNotifications(server);
+            //     await startDataNotifications(server);
+            //     await fetchCmdCharacteristic(server);
+            //     console.log('connected', device);
 
-                ble_devices.set(`${device.id}`, device);
-            } catch (err) {
-                console.warn(err);
-            }
+            //     ble_devices.set(`${device.id}`, device);
+            // } catch (err) {
+            //     console.warn(err);
+            // }
         };
 
         const initWebBluetooth = async () => {
@@ -133,8 +135,7 @@
             connectBLEBtn.addEventListener('click', async () => {
                 // TODO actual UUID (if you want to build a device)!!
                 const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['12345678-1234-5678-1234-56789abcdef0'] }],
-                    optionalServices: ['12115678-1234-5678-1234-56789abcdef0']
+                    filters: [{ services: ['12345678-1234-5678-1234-56789abcdef0'] }]
                 });
 
                 console.log(device);
