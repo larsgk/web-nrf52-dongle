@@ -4,6 +4,9 @@
   "sources": [
     "index.html"
   ],
+  "extraDependencies": [
+    "images/**"
+  ],
   "builds": [
     {
       "name": "esm-bundled",
