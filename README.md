@@ -17,8 +17,9 @@ A IoT product is unfortunately not worth much without a companion application, s
 * Based on Zephyr
 * Built for the Nordic nRF52840 Dongle (PCA10059)
 * Uses BLE GATT and WebUSB for communication
-* Button press sends notification, BLE CMD sets the LED
+* TODO: Button press sends notification, BLE CMD sets the LED
 * Pass through messages between BLE/GATT and USB
+* If first byte in message (either way) is a 0x01, the next 3 bytes will set RGB LED ([0x01, r, g, b]) in stead
 
 ## Web Demo
 * Based on LitElement
@@ -28,10 +29,10 @@ A IoT product is unfortunately not worth much without a companion application, s
 Note: Prebuilt firmware is available if you just want to focus on the web part.
 
 ### LitElement
-// install tools (ref docs...)
+https://lit-element.polymer-project.org/ (note: the 2.0.0-rc is used atm, will swap to 2.0.0 once released)
 
 ### Zephyr
-// install tools (ref docs...)
+https://docs.zephyrproject.org/latest/getting_started/getting_started.html
 
 ### nrfutil
 Follow these instructions to install nrfutil: https://github.com/NordicSemiconductor/pc-nrfutil

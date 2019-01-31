@@ -1,15 +1,8 @@
-/*
- * Copyright (c) 2017 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <zephyr.h>
 #include <misc/printk.h>
 #include <gpio.h>
 #include <device.h>
 #include <stdio.h>
-
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -67,10 +60,6 @@ static void bt_ready(int err)
 
 	gatt_service_init();
 
-	// if (IS_ENABLED(CONFIG_SETTINGS)) {
-	// 	settings_load();
-	// }
-
 	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
 	if (err) {
 		printk("Advertising failed to start (err %d)\n", err);
@@ -109,35 +98,14 @@ void main(void)
 	int len;
 
 	while(1) {
+		// Every second...
 		k_sleep(1000);
 		
+		// ...send 'heartbeat' count over WebUSB
 		len = sprintf(buf, "Count = %d", count);
-		// gatt_service_data_notify(buf, len);
 		send_webusb_data(buf, len);
 
-
+		// ...and BLE GATT
 		gatt_service_heartbeat_notify(count++);
 	}
-
-	// u32_t count;
-
-	// while(1) {
-	// 	rgb_led_set(0xff,0,0);
-	// 	k_sleep(1000);
-	// 	rgb_led_set(0x7f,0,0);
-	// 	k_sleep(1000);
-	// 	rgb_led_set(0,0xff,0);
-	// 	k_sleep(1000);
-	// 	rgb_led_set(0,0x7f,0);
-	// 	k_sleep(1000);
-	// 	rgb_led_set(0,0,0xff);
-	// 	k_sleep(1000);
-	// 	rgb_led_set(0,0,0x7f);
-	// 	k_sleep(1000);
-
-	// 	for(count=0;count<256;count+=2) {
-	// 		rgb_led_set(count,0,0);
-	// 		k_sleep(20);
-	// 	}
-	// }
 }

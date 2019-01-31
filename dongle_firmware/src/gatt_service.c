@@ -23,8 +23,7 @@ static u8_t notify_heartbeat;
 static struct bt_gatt_ccc_cfg  data_ccc_cfg[BT_GATT_CCC_MAX] = {};
 static u8_t notify_data;
 
-// TODO: Proper GATT UUID
-
+// NOTE: Use a proper GATT UUID for production.
 static struct bt_uuid_128 service_uuid = BT_UUID_INIT_128(
 	0xf0, 0xde, 0xbc, 0x9a, 0x78, 0x56, 0x34, 0x12,
 	0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12);
@@ -59,18 +58,11 @@ static ssize_t write_cmd(struct bt_conn *conn,
 				const void *buf, u16_t len, u16_t offset,
 				u8_t flags)
 {
-	//u8_t *value = attr->user_data;
-
-	// if (offset + len > sizeof(ctrl_point)) {
-	// 	return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
-	// }
-
-//	memcpy(value + offset, buf, len);
-    
 	u8_t *values = (u8_t*)buf;
 
-	// TODO: check length
-	printk("Cmd sent: 0x%02X\n", values[0]);
+	if(len == 0) {
+		return len;
+	}
 
 	if(values[0] == 0x01 && len == 4) {
 		rgb_led_set(values[1], values[2], values[3]);
