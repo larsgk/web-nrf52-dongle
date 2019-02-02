@@ -11,6 +11,7 @@ export class MessageList extends LitElement {
                 width: 100%;
                 height: 50%;
                 border: 1px solid black;
+                overflow-y: scroll;
             }
             
             `
