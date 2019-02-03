@@ -44,11 +44,7 @@ class _BLEService extends EventTarget {
         device.cmdCharacteristic.writeValue(data);
     }
     
-    writeRGBToBLEDevice (device, r, g, b) {
-        const data = new Uint8Array([0x01, 
-            Math.floor(r)&0xff,
-            Math.floor(g)&0xff,
-            Math.floor(b)&0xff]);
+    writeBinaryToBLEDevice (device, data) {
         console.log(`TX_BLE[${device.id}]:`, data);
         device.cmdCharacteristic.writeValue(data);
     }
@@ -82,6 +78,12 @@ class _BLEService extends EventTarget {
     broadcast(message) {
         for(let [key, device] of this.ble_devices) {
             this.writeStrToBLEDevice(device, message);
+        }
+    }
+
+    broadcastBinary(data) {
+        for(let [key, device] of this.ble_devices) {
+            this.writeBinaryToBLEDevice(device, data);
         }
     }
 

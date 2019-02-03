@@ -39,6 +39,7 @@ export class MainApp extends LitElement {
         input {
           flex-grow: 1;
           font-size: 1.2rem;
+          height: 2rem;
           margin: 0.2em;
         }
       `
@@ -59,8 +60,15 @@ export class MainApp extends LitElement {
               <input id="message">
             </div>
             <div class="row">
-              <button @click=${this.sendBLE}>SEND ALL (BLE)</button>
-              <button @click=${this.sendUSB}>SEND ALL (USB)</button>
+              <button @click=${this.sendBLE}>TEXT -> BLE</button>
+              <button @click=${this.sendUSB}>TEXT -> USB</button>
+            </div>
+            <div class="row">
+              <input id="color" type="color">
+            </div>
+            <div class="row">
+              <button @click=${this.sendRGBBLE}>COLOR -> BLE</button>
+              <button @click=${this.sendRGBUSB}>COLOR -> USB</button>
             </div>
             <nrf52-dongle></nrf52-dongle>
             <message-list></message-list>
@@ -78,6 +86,7 @@ export class MainApp extends LitElement {
     USBService.addEventListener('usb-disconnected', evt => { console.log('disconnected USB', evt) });
 
     this.messageInput = this.shadowRoot.querySelector('#message');
+    this.colorInput = this.shadowRoot.querySelector('#color');
   }
 
   scanBLE() {
@@ -94,6 +103,18 @@ export class MainApp extends LitElement {
 
   sendUSB() {
     USBService.broadcast(this.messageInput.value);
+  }
+
+  hexToRGB(hexval) {
+    return hexval.match(/[A-Za-z0-9]{2}/g).map(v => parseInt(v, 16));
+  }
+
+  sendRGBBLE() {
+    BLEService.broadcastBinary(new Uint8Array([1, ...this.hexToRGB(this.colorInput.value)]));
+  }
+
+  sendRGBUSB() {
+    USBService.broadcastBinary(new Uint8Array([1, ...this.hexToRGB(this.colorInput.value)]));
   }
 }
 customElements.define("main-app", MainApp);

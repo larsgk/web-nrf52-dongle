@@ -50,11 +50,7 @@ class _USBService extends EventTarget {
         device.transferOut(2, data);
     };
 
-    writeRGBToBLEDevice (device, r, g, b) {
-        const data = new Uint8Array([0x01, 
-            Math.floor(r)&0xff,
-            Math.floor(g)&0xff,
-            Math.floor(b)&0xff]);
+    writeBinaryToUSBDevice (device, data) {
         console.log(`TX_BLE[${device.id}]:`, data);
         device.transferOut(2, data);
     }
@@ -81,6 +77,12 @@ class _USBService extends EventTarget {
     broadcast(message) {
         for(let [key, device] of this.usb_devices) {
             this.writeStrToUSBDevice(device, message);
+        }
+    }
+
+    broadcastBinary(data) {
+        for(let [key, device] of this.usb_devices) {
+            this.writeBinaryToUSBDevice(device, data);
         }
     }
 
