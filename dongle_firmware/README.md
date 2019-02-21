@@ -29,7 +29,6 @@ nrfutil pkg generate --hw-version 52 --sd-req=0x00 --application zephyr/zephyr.h
 nrfutil dfu serial -pkg pkg.zip -p /dev/ttyACM0
 ```
 
-
 # Unique identifiers
 
 ## BLE
@@ -38,12 +37,11 @@ The first part of the MAC address should be printed on the sticker on the dongle
 ## USB
 The serial number is derived from 2 internal factory set 64bit integers. Allows for multiple devices connecting at the same time.
 
-
 # TODO
 
 * unify WebUSB and GATT 'cmd protocols' (set color, send text)
 * put guards/limits on length of messages
-* maybe introduce multi-notify on both USB and gatt side (workqueue) - could be too advanced?
+* maybe introduce multi-notify on both USB and gatt side (workqueue)
 * add ability to rename BLE device name - maybe only at runtime (no persist)?
 * possibly send unique USB serial, etc on e.g. READ GATT characteristic?
 * More descriptors on GATT services/characteristics

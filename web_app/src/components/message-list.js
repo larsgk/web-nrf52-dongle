@@ -30,7 +30,7 @@ export class MessageList extends LitElement {
         this.messages = [];
         
         BLEService.addEventListener('ble-connected', evt => {
-            evt.detail.type = 'USB';
+            evt.detail.type = 'BLE';
             evt.detail.value = 'CONNECTED';
             this.messages.push(evt.detail);
             this.requestUpdate();
